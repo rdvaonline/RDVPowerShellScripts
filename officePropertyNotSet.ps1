@@ -1,0 +1,27 @@
+$logfile = "C:\officenotset_$(get-date -format `"yyyyMMdd_hhmmsstt`").txt"
+
+function main() {
+	officeNotSet
+}
+
+function log ($string) {
+	write-host "$(get-date) $string"
+	$string | out-file -Filepath $logfile -append
+}
+
+function officeNotSet {
+	$utilityOU = "*OU=Utility,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
+	$serviceAccountOU = "*OU=Service Accounts,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
+	$monitoringMailboxes = "*CN=Monitoring Mailboxes,CN=Microsoft Exchange System Objects,DC=cdi,DC=local"
+	$vendorsOU = "*OU=Vendors,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
+	$mailContactsOU = "*OU=Mail Contacts,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
+	
+
+	$OfficeNotSetUser=Get-ADUser -properties displayname,distinguishedName,office -filter {(Enabled -eq "True") -and (office -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU)}
+	
+	foreach ($SingleUser in $OfficeNotSetUser) {
+		log "$($SingleUser.displayname)`t $($SingleUser.distinguishedName)"
+	}
+}
+
+main
