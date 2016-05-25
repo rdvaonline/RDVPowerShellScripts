@@ -1,0 +1,13 @@
+Get-MailboxExportRequest | Get-MailboxExportRequestStatistics | select Status,FilePath,SourceAlias,SourceIsArchive,SourceMailboxIdentity,SourceDatabase,SourceServer,BadItemsEncountered,StartTimestamp,CompletionTimestamp,EstimatedTransferSize,BytesTransferred,estimatedTransferitemcount,itemstransferred,PercentComplete,message | export-csv F:\exports\admin\MailboxExportReport0506.csv
+
+Get-Mailbox | where-object {($_.OrganizationalUnit -notlike '*disabled*')} | Get-Mailboxstatistics | select displayname,itemcount,totalitemsize,database,isarchivemailbox,laslogontime | sort-object displayname | export-csv F:\exports\admin\mailboxes.csv
+
+Get-Mailbox | where-object {($_.organizationalunit -notlike '*disabled*')} | select alias | export-csv F:\exports\admin\aliases.csv
+
+Get-Mailbox | where-object {($_.archivedatabase -ne $null) -and ($_.organizationalunit -notlike '*disabled*')} | select alias | export-csv F:\exports\admin\archives.csv
+
+foreach ($i in (import-csv F:\exports\admin\archives.csv)) { new-mailboxexportrequest -mailbox $i.Alias -filepath \\mail\exports\archives\$($i.alias).pst -isarchive}
+
+Get-MailboxExportRequest | where-object {($_.status -notlike '*completed*')}  Get-MailboxExportRequestStatistics
+
+get-mailboxexportrequest -status failed | get-mailboxexportrequeststatistics | select status,statusdetail,sourcealias,starttimestamp,lastupdatetimestamp,failurecode,failureside,failuretimestamp,message | export-csv F:\exports\admin\MailboxFail0415.csv
