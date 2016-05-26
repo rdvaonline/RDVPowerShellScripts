@@ -11,11 +11,15 @@ function log ($string) {
 	$string | out-file -Filepath $logfile -append
 }
 
-function notifyByEmail ($messageBody, $recipient) {
-    # Set the PowerShell email server to our SMTP relay on app4 
+function notifyByEmail ($attachmentPath) {
+    # Set the PowerShell email server to our SMTP relay on app4. Set variables for use in the send-mailmessage command.
     $psemailserver = "app4"
+    $sender = "helpdesk@cellulardynamics.com"
+    $recipient = "rob.vanhoorne.contractor@cellulardynamics.com"
+    $subject = "Office Property Not Set Report"
+    $body = "Please set the Office property for the following users in Active Directory Users and Computers."
     
-    send-mailmessage -from "helpdesk@cellulardynamics.com" -to $recipient
+    send-mailmessage -from $sender -to $recipient -subject $subject -body $body -Attachments $attachmentPath
 }
 
 function officePropertyNotSet {
@@ -33,8 +37,9 @@ function officePropertyNotSet {
 
 	foreach ($SingleUser in $OfficePropertyNotSetUser) {
 		log "$($SingleUser.displayname)`t $($SingleUser.distinguishedName)"
-        
 	}
+
+    notifyByEmail $attachmentPath
 }
 
 main
