@@ -11,6 +11,13 @@ function log ($string) {
 	$string | out-file -Filepath $logfile -append
 }
 
+function notifyByEmail ($messageBody, $recipient) {
+    # Set the PowerShell email server to our SMTP relay on app4 
+    $psemailserver = "app4"
+    
+    send-mailmessage -from "helpdesk@cellulardynamics.com" -to $recipient
+}
+
 function officePropertyNotSet {
 	$utilityOU = "*OU=Utility,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	$serviceAccountOU = "*OU=Service Accounts,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
@@ -20,9 +27,13 @@ function officePropertyNotSet {
 	
 
 	$OfficePropertyNotSetUser=Get-ADUser -properties displayname,distinguishedName,office -filter {(Enabled -eq "True") -and (office -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU)}
-	
+    $attachmentPath = "c:\officePropertyNotSet_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
+    
+    $OfficePropertyNotSetUser | export-csv $attachmentPath
+
 	foreach ($SingleUser in $OfficePropertyNotSetUser) {
 		log "$($SingleUser.displayname)`t $($SingleUser.distinguishedName)"
+        
 	}
 }
 
