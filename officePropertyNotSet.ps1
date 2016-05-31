@@ -16,16 +16,16 @@ function notifyByEmail ($attachmentPath) {
 }
 
 function officePropertyNotSet {
+    # Set variables for OUs to be excluded by the search. These OUs contain external users that are not employees of CDI, service accounts, and other administrative resources.
 	$utilityOU = "*OU=Utility,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	$serviceAccountOU = "*OU=Service Accounts,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	$monitoringMailboxes = "*CN=Monitoring Mailboxes,CN=Microsoft Exchange System Objects,DC=cdi,DC=local"
 	$vendorsOU = "*OU=Vendors,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	$mailContactsOU = "*OU=Mail Contacts,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	
-
+  
 	$OfficePropertyNotSetUser=Get-ADUser -properties displayname,distinguishedName,office -filter {(Enabled -eq "True") -and (office -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU)}
     $attachmentPath = "c:\officePropertyNotSet_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
-     
     $OfficePropertyNotSetUser | select DisplayName,Office, DistinguishedName,Enabled | export-csv $attachmentPath
 
     notifyByEmail $attachmentPath

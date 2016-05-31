@@ -1,7 +1,7 @@
 $logfile = "C:\homeofficeover90_$(get-date -format `"yyyyMMdd_hhmmsstt`").txt"
 
 function main() {
-	daysSincePasswordLastSet
+	daysRemainingUntilPasswordMustBeChanged
 }
 
 function log ($string) {
@@ -9,17 +9,40 @@ function log ($string) {
 	$string | out-file -Filepath $logfile -append
 }
 
-function daysSincePasswordLastSet {
-	$HomeOfficeUser=Get-ADUser -properties displayname,pwdlastset,mail,office -filter {(Enabled -eq "True") -and (Office -eq "Home Office")}
+function notifyByEmail ($recipient, $subject, $body) {
+    # Set the PowerShell email server to our SMTP relay on app4. Set variables for use in the send-mailmessage command.
+    $psemailserver = "app4"
+    $sender = "helpdesk@cellulardynamics.com"
+    
+    send-mailmessage -from $sender -to $recipient -subject $subject -body $body
+}
+
+function daysRemainingUntilPasswordMustBeChanged {
+	$HomeOfficeUser=Get-ADUser -properties displayname,samaccountname,pwdlastset,mail,office -filter {(Enabled -eq "True") -and (Office -eq "Home Office")}
 	
 	foreach($SingleUser in $HomeOfficeUser) {
-		$FirstDate=[datetime]::FromFileTime($SingleUser.pwdlastset) 
-		$SecondDate= Get-Date 
-		$Result= $SecondDate -$FirstDate 
+		$lastSetDate=[datetime]::FromFileTime($SingleUser.pwdlastset) 
+		$currentDate= Get-Date 
+		$daysRemaining= $lastSetDate -$currentDate
 
-		if ($Result.Days -gt 90) {
-			log "$(get-date)`t$($SingleUser.displayname)`t$($SingleUser.office)`t$Result"
+        $recipient = "$($SingleUser.samaccountname)@cellulardynamics.com"
+        $recipient += ",helpdesk@cellulardynamics.com"
+
+        log $recipient
+
+        log "$(get-date)`t$($SingleUser.displayname)`t$($SingleUser.office)`t$daysRemaining"
+
+		if ($daysRemaining.Days -lt 0) {
+        
 		} 
+
+        if ($daysRemaining.Days -gt 0 -and $daysRemaining.Days -lt 7) {
+  
+        } 
+        
+        if ($daysRemaining.Days -gt 7 -and $daysRemaining.Days -lt 14) {
+
+        }
 	}
 }
 
