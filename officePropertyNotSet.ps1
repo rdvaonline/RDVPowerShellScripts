@@ -25,7 +25,7 @@ function officePropertyNotSet {
 	
   
 	$OfficePropertyNotSetUser=Get-ADUser -properties displayname,distinguishedName,office -filter {(Enabled -eq "True") -and (office -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU)}
-    $attachmentPath = "\\fsdc\Public\IT-Public\Scripts\logs\officePropertyNotSet_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
+    $attachmentPath = "\\fsdc\Scripts\logs\officePropertyNotSet_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
     $OfficePropertyNotSetUser | select DisplayName,Office, DistinguishedName,Enabled | export-csv $attachmentPath
 
     notifyByEmail $attachmentPath
