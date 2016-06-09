@@ -1,4 +1,4 @@
-$logfile = "C:\homeofficeover90_$(get-date -format `"yyyyMMdd_hhmmsstt`").txt"
+$logfile = "\\fsdc\Public\IT-Public\Scripts\logs\findStaleExternalPasswords_$(get-date -format `"yyyyMMdd_hhmmsstt`").txt"
 
 function main() {
 	daysRemainingUntilPasswordMustBeChanged
@@ -25,14 +25,13 @@ function daysRemainingUntilPasswordMustBeChanged {
 		$currentDate= Get-Date 
 		$daysRemaining= $lastSetDate -$currentDate
 
-        # $recipient = "$($SingleUser.samaccountname)@cellulardynamics.com"
-        $recipient = "rob.vanhoorne.contractor@cellulardynamics.com"
-        $attachmentPath = "C:\Users\rvanhoorne\Desktop\How to Change Password for External Users.pdf"
+        $recipient = "$($SingleUser.samaccountname)@cellulardynamics.com"
+        $attachmentPath = "\\fsdc\Public\IT-Public\Scripts\How to Change Password for External Users.pdf"
 
         log "$(get-date)`t$($SingleUser.displayname)`t$($SingleUser.office)`t$daysRemaining"
 
         if ($daysRemaining.Days -lt 7) {
-            # $recipient += ",helpdesk@cellulardynamics.com"
+            $recipient += ",helpdesk@cellulardynamics.com"
             $subject = "Password Expires in $($daysRemaining.Days) Days for $($SingleUser.samaccountname)"
             $body = "Hello! Your password will expire in $($daysRemaining.days) days. The helpdesk has been CC'd which will create a case for us to follow up with you. Step by step instructions for updating your password are attached."
 
