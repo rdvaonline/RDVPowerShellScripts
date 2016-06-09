@@ -8,7 +8,7 @@ function notifyByEmail ($attachmentPath) {
     # Set the PowerShell email server to our SMTP relay on app4. Set variables for use in the send-mailmessage command.
     $psemailserver = "app4"
     $sender = "helpdesk@cellulardynamics.com"
-    $recipient = "rob.vanhoorne.contractor@cellulardynamics.com"
+    $recipient = "swolfe@cellulardynamics.com"
     $subject = "List of Users Who Do Not Have the Office Property Set in ADUC"
     $body = "Attached is a list of users who do not have the Office property set. Please set the property in Active Directory Users and Computers."
     
@@ -25,7 +25,7 @@ function officePropertyNotSet {
 	
   
 	$OfficePropertyNotSetUser=Get-ADUser -properties displayname,distinguishedName,office -filter {(Enabled -eq "True") -and (office -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU)}
-    $attachmentPath = "c:\officePropertyNotSet_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
+    $attachmentPath = "\\fsdc\Public\IT-Public\Scripts\logs\officePropertyNotSet_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
     $OfficePropertyNotSetUser | select DisplayName,Office, DistinguishedName,Enabled | export-csv $attachmentPath
 
     notifyByEmail $attachmentPath
