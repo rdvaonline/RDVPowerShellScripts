@@ -12,5 +12,8 @@ function log ($string) {
 }
 
 function findInactiveAccounts {
-	
+
+    Search-ADAccount -AccountInactive -TimeSpan 90 -UsersOnly | Where-Object { ($_.Enabled -eq $true) } | ft samaccountname,lastlogondate,distinguishedname
 }
+
+main
