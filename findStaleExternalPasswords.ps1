@@ -1,4 +1,4 @@
-$logfile = "\\fsdc\Public\IT-Public\Scripts\logs\findStaleExternalPasswords_$(get-date -format `"yyyyMMdd_hhmmsstt`").txt"
+$logfile = "\\fsdc\Scripts\logs\findStaleExternalPasswords_$(get-date -format `"yyyyMMdd_hhmmsstt`").txt"
 
 function main() {
 	daysRemainingUntilPasswordMustBeChanged
@@ -26,7 +26,7 @@ function daysRemainingUntilPasswordMustBeChanged {
 		$daysRemaining= $lastSetDate -$currentDate
 
         $recipient = "$($SingleUser.samaccountname)@cellulardynamics.com"
-        $attachmentPath = "\\fsdc\Public\IT-Public\Scripts\How to Change Password for External Users.pdf"
+        $attachmentPath = "\\fsdc\Scripts\How to Change Password for External Users.pdf"
 
         log "$(get-date)`t$($SingleUser.displayname)`t$($SingleUser.office)`t$daysRemaining"
 
