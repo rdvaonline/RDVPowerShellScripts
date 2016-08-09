@@ -36,7 +36,6 @@ function daysRemainingUntilPasswordMustBeChanged {
             $body = "Hello! Your password will expire in $($daysRemaining.days) days. The helpdesk has been CC'd which will create a case for us to follow up with you. Step by step instructions for updating your password are attached."
 
             #notifyByEmail $sendor $recipient $subject $body $attachmentPath
-            log $recipient
         } 
         
         if ($daysRemaining.Days -gt 7 -and $daysRemaining.Days -lt 14) {
@@ -44,7 +43,7 @@ function daysRemainingUntilPasswordMustBeChanged {
             $body = "Hello! Your password will expire in $($daysRemaining.Days) days. Attached are step by step instructions on how to connect to the VPN and update your password. Please contact us at helpdesk@cellulardynamics.com if you have questions or need assistance."
 
             #notifyByEmail $sendor $recipient $subject $body $attachmentPath
-            log $recipient
+  
         }
 	}
 }
