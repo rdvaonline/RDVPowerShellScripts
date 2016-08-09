@@ -15,7 +15,7 @@ function notifyByEmail {
     # Set the PowerShell email server to our SMTP relay on app4. Set variables for use in the send-mailmessage command.
     $psemailserver = "app4"
     $sender = "helpdesk@cellulardynamics.com"
-    $recipient = "rob.vanhoorne.contractor@cellulardynamics.com"
+    $recipient = "swolfe@cellulardynamics.com"
     $subject = "List of Users Who Do Not Have the Office Property or Email Property Set in ADUC"
     $body = "Attached are lists of users who do not have the Office or Email property set. Please set the property in Active Directory Users and Computers."
     $attachments = @()
@@ -34,9 +34,11 @@ function officePropertyNotSet {
 	$monitoringMailboxes = "*CN=Monitoring Mailboxes,CN=Microsoft Exchange System Objects,DC=cdi,DC=local"
 	$vendorsOU = "*OU=Vendors,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	$mailContactsOU = "*OU=Mail Contacts,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
+    $FFVisitorsOU = "*OU=FF Visitors,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
+    $HLUSITOU = "*OU=HLUS IT,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	
   
-	$OfficePropertyNotSetUser=Get-ADUser -properties displayname,distinguishedName,office -filter {(Enabled -eq "True") -and (office -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU)}
+	$OfficePropertyNotSetUser=Get-ADUser -properties displayname,distinguishedName,office -filter {(Enabled -eq "True") -and (office -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU) -and ($_.DistinguishedName -notlike $FFVisitorsOU) -and ($_.DistinguishedName -notlike $HLUSITOU)}
     $attachment = "\\fsdc\Scripts\logs\officePropertyNotSet_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
     $OfficePropertyNotSetUser | select DisplayName,Office,DistinguishedName,Enabled | export-csv $attachment
 
@@ -50,9 +52,11 @@ function emailPropertyNotSet {
 	$monitoringMailboxes = "*CN=Monitoring Mailboxes,CN=Microsoft Exchange System Objects,DC=cdi,DC=local"
 	$vendorsOU = "*OU=Vendors,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	$mailContactsOU = "*OU=Mail Contacts,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
+    $FFVisitorsOU = "*OU=FF Visitors,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
+    $HLUSITOU = "*OU=HLUS IT,OU=Users,OU=CDI-ScienceDr,DC=cdi,DC=local"
 	
   
-	$MailPropertyNotSetUser=Get-ADUser -properties displayname,distinguishedName,mail -filter {(Enabled -eq "True") -and (mail -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU)}
+	$MailPropertyNotSetUser=Get-ADUser -properties displayname,distinguishedName,mail -filter {(Enabled -eq "True") -and (mail -notlike "*")} | where-object {($_.DistinguishedName -notlike $utilityOU) -and ($_.DistinguishedName -notlike $serviceAccountOU) -and ($_.DistinguishedName -notlike $monitoringMailboxes) -and ($_.DistinguishedName -notlike $vendorsOU) -and ($_.DistinguishedName -notlike $mailContactsOU) -and ($_.DistinguishedName -notlike $FFVistorsOU) -and ($_.DistinguishedName -notlike $HLUSITOU)}
     $attachment = "\\fsdc\Scripts\logs\emailPropertyNotSet_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
     $MailPropertyNotSetUser | select DisplayName,Mail,DistinguishedName,Enabled | export-csv $attachment
 
