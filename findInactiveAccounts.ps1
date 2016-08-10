@@ -7,7 +7,7 @@ function main() {
 function notifyByEmail ($attachmentPath) {
     # Set the PowerShell email server to our SMTP relay on app4. Set variables for use in the send-mailmessage command.
     $psemailserver = "app4"
-    $sender = "helpdesk@cellulardynamics.com"
+    $sender = "rvanhoorne@cellulardynamics.com"
     $recipient = "helpdesk@cellulardynamics.com"
     $subject = "List of Users Who Have Not Logged in For 30 Days"
     $body = "Attached is a list of users who have not logged in for 30 days. Please review the list and disable accounts as needed."
