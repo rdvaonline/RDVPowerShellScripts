@@ -4,7 +4,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Email CSV of Employee Groups Form"
+$form.Text = "Get Employee Group Memberships"
 $form.Size = New-Object System.Drawing.Size(300,220)
 $form.StartPosition = "CenterScreen"
 
@@ -27,7 +27,7 @@ $form.Controls.Add($CancelButton)
 $labelUsername = New-Object System.Windows.Forms.Label
 $labelUsername.Location = New-Object System.Drawing.Size(10,20)
 $labelUsername.Size = New-Object System.Drawing.Size(280,20)
-$labelUsername.Text = "Please enter the employee's username:"
+$labelUsername.Text = "Enter the employee's username seperated by a comma:"
 $form.Controls.Add($labelUsername)
 
 $textBoxUsername = New-Object System.Windows.Forms.TextBox
@@ -38,7 +38,7 @@ $form.Controls.Add($textBoxUsername)
 $labelEmail = New-Object System.Windows.Forms.Label
 $labelEmail.Location = New-Object System.Drawing.Size(10,80)
 $labelEmail.Size = New-Object System.Drawing.Size(280,20)
-$labelEmail.Text = "Please enter your email address:"
+$labelEmail.Text = "Enter your email address:"
 $form.Controls.Add($labelEmail)
 
 $textBoxEmail = New-Object System.Windows.Forms.TextBox
@@ -70,7 +70,7 @@ function notifyByEmail ($emailAddress, $username, $attachmentPath) {
 
 function exportGroupMembershipsToCSV ($username) {
     $attachmentPath = "\\fsdc\Scripts\logs\exportGroupMembershipsToCSV_$($username)_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
-    Get-ADPrincipalGroupMembership $username | Get-ADGroup -Properties name, description | select name, description | export-csv $attachmentPath
+    Get-ADPrincipalGroupMembership $username | Get-ADGroup -Properties name, description | select @{Name="Group Name"; Expression={$_.name}}, @{Name="Group Description"; Expression={$_.description}} | export-csv $attachmentPath -NoTypeInformation
 
     return $attachmentPath
 }
