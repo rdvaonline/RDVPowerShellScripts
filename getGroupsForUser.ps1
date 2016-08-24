@@ -78,10 +78,28 @@ function exportGroupMembershipsToCSV ($username) {
 if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
 
     $attachments = @()
-    $usernames = $textBoxUsername.text.replace(' ','').Split(',',[System.StringSplitOptions]::RemoveEmptyEntries)
+    $usernames = $textBoxUsername.text.Split(',',[System.StringSplitOptions]::RemoveEmptyEntries)
 
     foreach ($username in $usernames) {
-        $attachmentPath = exportGroupMembershipsToCSV $username
+        try {
+            $ADUser = Get-ADUser -Identity $username
+        } catch {
+            log "SAM Account Name lookup was not successful. Attempting Display Name lookup."
+        }
+
+        if (!$ADUser) {
+            try {
+                Get-ADUser -Filter { displayName -like "*$username*" }
+            } catch {
+                log "Display Name lookup was not successful."
+            }
+        }
+
+        if ($ADUser) {
+            log "User lookup was successful!"
+        }
+
+        $attachmentPath = exportGroupMembershipsToCSV $ADUser.samaccountname
         $attachments += $attachmentPath
     }
 
