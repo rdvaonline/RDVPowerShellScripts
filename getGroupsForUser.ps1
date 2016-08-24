@@ -101,6 +101,8 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
 
         $attachmentPath = exportGroupMembershipsToCSV $ADUser.samaccountname
         $attachments += $attachmentPath
+
+        Remove-Variable -name ADUser,username,attachmentPath
     }
 
     notifyByEmail $textBoxEmail.Text $textBoxUsername.Text $attachments
