@@ -65,7 +65,11 @@ function notifyByEmail ($emailAddress, $username, $attachmentPath) {
     $body = "Attached are the group memberships for $($username). Please review in accordance with policy IT24-A."
     $attachment = $attachmentPath
     
-    send-mailmessage -from $sender -to $recipient -subject $subject -body $body -Attachments $attachment
+    try {
+        send-mailmessage -from $sender -to $recipient -subject $subject -body $body -Attachments $attachment -ErrorAction Stop
+    } catch {
+        log "Could not send email."
+    }
 }
 
 function exportGroupMembershipsToCSV ($username) {
@@ -84,25 +88,25 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         try {
             $ADUser = Get-ADUser -Identity $username
         } catch {
-            log "SAM Account Name lookup was not successful. Attempting Display Name lookup."
+            log "SAM Account Name lookup for $($username) was not successful. Attempting Display Name lookup."
         }
 
         if (!$ADUser) {
             try {
-                Get-ADUser -Filter { displayName -like "*$username*" }
+                $ADUser = Get-ADUser -Filter { name -like $username }
             } catch {
-                log "Display Name lookup was not successful."
+                log "Display Name lookup for $($username) was not successful."
             }
         }
 
         if ($ADUser) {
-            log "User lookup was successful!"
+            log "User lookup for $($username) was successful!"
+            $attachmentPath = exportGroupMembershipsToCSV $ADUser.samaccountname
+            $attachments += $attachmentPath
+            Remove-Variable -name aduser,username,attachmentPath
+        } else {
+            log "User lookup for $($username) failed. Please use a valid display name or username."
         }
-
-        $attachmentPath = exportGroupMembershipsToCSV $ADUser.samaccountname
-        $attachments += $attachmentPath
-
-        Remove-Variable -name ADUser,username,attachmentPath
     }
 
     notifyByEmail $textBoxEmail.Text $textBoxUsername.Text $attachments
