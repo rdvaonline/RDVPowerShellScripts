@@ -11,9 +11,15 @@ function log ($string) {
 
 function checkForTrendInstall {
     try {
-        $isTrendInstalled = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Trend*"} | Select-Object DisplayName
+        $displayNames = @()
+        $displayNames += Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Trend*"} | Select-Object DisplayName
+        if ($displayNames.count -gt 0) {
+            log "Trend detected. Attempting uninstall."
+        } else {
+            log "Trend not detected. Proceeding to McAfee install."
+        }
     } catch {
-        log "Trend Install Not Found"
+        log "Halp!"
     }
 }
 
