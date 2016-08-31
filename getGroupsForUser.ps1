@@ -4,7 +4,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Email CSV of Employee Groups Form"
+$form.Text = "Get Employee Group Memberships"
 $form.Size = New-Object System.Drawing.Size(300,220)
 $form.StartPosition = "CenterScreen"
 
@@ -27,7 +27,7 @@ $form.Controls.Add($CancelButton)
 $labelUsername = New-Object System.Windows.Forms.Label
 $labelUsername.Location = New-Object System.Drawing.Size(10,20)
 $labelUsername.Size = New-Object System.Drawing.Size(280,20)
-$labelUsername.Text = "Please enter the employee's username:"
+$labelUsername.Text = "Enter the employee's username seperated by a comma:"
 $form.Controls.Add($labelUsername)
 
 $textBoxUsername = New-Object System.Windows.Forms.TextBox
@@ -38,7 +38,7 @@ $form.Controls.Add($textBoxUsername)
 $labelEmail = New-Object System.Windows.Forms.Label
 $labelEmail.Location = New-Object System.Drawing.Size(10,80)
 $labelEmail.Size = New-Object System.Drawing.Size(280,20)
-$labelEmail.Text = "Please enter your email address:"
+$labelEmail.Text = "Enter your email address:"
 $form.Controls.Add($labelEmail)
 
 $textBoxEmail = New-Object System.Windows.Forms.TextBox
@@ -65,12 +65,16 @@ function notifyByEmail ($emailAddress, $username, $attachmentPath) {
     $body = "Attached are the group memberships for $($username). Please review in accordance with policy IT24-A."
     $attachment = $attachmentPath
     
-    send-mailmessage -from $sender -to $recipient -subject $subject -body $body -Attachments $attachment
+    try {
+        send-mailmessage -from $sender -to $recipient -subject $subject -body $body -Attachments $attachment -ErrorAction Stop
+    } catch {
+        log "Could not send email."
+    }
 }
 
 function exportGroupMembershipsToCSV ($username) {
     $attachmentPath = "\\fsdc\Scripts\logs\exportGroupMembershipsToCSV_$($username)_$(get-date -format `"yyyyMMdd_hhmmsstt`").csv"
-    Get-ADPrincipalGroupMembership $username | Get-ADGroup -Properties name, description | select name, description | export-csv $attachmentPath
+    Get-ADPrincipalGroupMembership $username | Get-ADGroup -Properties name, description | select @{Name="Group Name"; Expression={$_.name}}, @{Name="Group Description"; Expression={$_.description}} | export-csv $attachmentPath -NoTypeInformation
 
     return $attachmentPath
 }
@@ -78,11 +82,31 @@ function exportGroupMembershipsToCSV ($username) {
 if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
 
     $attachments = @()
-    $usernames = $textBoxUsername.text.replace(' ','').Split(',',[System.StringSplitOptions]::RemoveEmptyEntries)
+    $usernames = $textBoxUsername.text.Split(',',[System.StringSplitOptions]::RemoveEmptyEntries)
 
     foreach ($username in $usernames) {
-        $attachmentPath = exportGroupMembershipsToCSV $username
-        $attachments += $attachmentPath
+        try {
+            $ADUser = Get-ADUser -Identity $username
+        } catch {
+            log "SAM Account Name lookup for $($username) was not successful. Attempting Display Name lookup."
+        }
+
+        if (!$ADUser) {
+            try {
+                $ADUser = Get-ADUser -Filter { name -like $username }
+            } catch {
+                log "Display Name lookup for $($username) was not successful."
+            }
+        }
+
+        if ($ADUser) {
+            log "User lookup for $($username) was successful!"
+            $attachmentPath = exportGroupMembershipsToCSV $ADUser.samaccountname
+            $attachments += $attachmentPath
+            Remove-Variable -name aduser,username,attachmentPath
+        } else {
+            log "User lookup for $($username) failed. Please use a valid display name or username."
+        }
     }
 
     notifyByEmail $textBoxEmail.Text $textBoxUsername.Text $attachments

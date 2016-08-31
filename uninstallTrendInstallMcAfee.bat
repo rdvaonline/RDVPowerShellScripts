@@ -1,0 +1,1 @@
+﻿PowerShell.exe -ExecutionPolicy Bypass -File \\fsdc\scripts\uninstallTrendInstallMcAfee.ps1
