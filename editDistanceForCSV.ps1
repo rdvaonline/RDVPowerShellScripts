@@ -44,8 +44,13 @@ function browseClicked() {
     $result = $openFileDialog.ShowDialog()
 
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
-        $csvPath = $openFileDialog.FileName
+        handleCSV($openFileDialog.FileName)
     }
+}
+
+function handleCSV($csvPath) {
+    $sourceCSV = Import-Csv $csvPath
+    Write-Host "Doing the thing!"
 }
 
 initializeForm
