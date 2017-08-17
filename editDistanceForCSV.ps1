@@ -40,7 +40,7 @@ function initializeForm() {
 function browseClicked() {
 	$openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $openFileDialog.Filter = "|*.csv"
-	$openFileDialog.ShowHelp = $true
+	$openFileDialog.ShowHelp = $true1
     $result = $openFileDialog.ShowDialog()
 
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -50,6 +50,9 @@ function browseClicked() {
 
 function handleCSV($csvPath) {
     $sourceCSV = Import-Csv $csvPath
+    $executingScriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+    $scriptPath = Join-Path $executingScriptDirectory "get-ld.ps1"
+    Invoke-Expression .\$scriptPath
     Write-Host "Doing the thing!"
 }
 
