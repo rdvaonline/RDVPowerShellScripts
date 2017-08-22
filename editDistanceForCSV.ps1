@@ -107,7 +107,7 @@ function initializeForm() {
 
 function browseClicked() {
 	$openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
-    $openFileDialog.Filter = "|*.csv"
+    $openFileDialog.Filter = "CSV Files (*.csv)|*.csv"
 	$openFileDialog.ShowHelp = $true
     $result = $openFileDialog.ShowDialog()
 
