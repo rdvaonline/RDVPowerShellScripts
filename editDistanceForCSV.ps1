@@ -1,3 +1,48 @@
+$source = @"
+using System;
+using System.Linq;
+
+public class Levenshtein {
+	public static int EditDistance (string original, string modified)
+	{
+		if (original == modified)
+			return 0;
+
+		int len_orig = original.Length;
+		int len_diff = modified.Length;
+
+		if (len_orig == 0)
+			return len_diff;
+
+		if (len_diff == 0)
+			return len_orig;
+
+		var matrix = new int[len_orig + 1, len_diff + 1];
+
+		for (int i = 1; i <= len_orig; i++) {
+			matrix[i, 0] = i;
+			for (int j = 1; j <= len_diff; j++) {
+				int cost = modified[j - 1] == original[i - 1] ? 0 : 1;
+				if (i == 1)
+					matrix[0, j] = j;
+
+				var vals = new int[] {
+					matrix[i - 1, j] + 1,
+					matrix[i, j - 1] + 1,
+					matrix[i - 1, j - 1] + cost
+				};
+				matrix[i,j] = vals.Min ();
+				if (i > 1 && j > 1 && original[i - 1] == modified[j - 2] && original[i - 2] == modified[j - 1])
+					matrix[i,j] = Math.Min (matrix[i,j], matrix[i - 2, j - 2] + cost);
+			}
+		}
+		return matrix[len_orig, len_diff];
+	}
+}
+"@
+
+Add-Type -TypeDefinition $source
+
 function initializeForm() {
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
@@ -50,9 +95,9 @@ function browseClicked() {
 
 function handleCSV($csvPath) {
     $sourceCSV = Import-Csv $csvPath
-    $executingScriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
-    $scriptPath = Join-Path $executingScriptDirectory "get-ld.ps1"
-    Invoke-Expression .\$scriptPath
+    $result = [Levenshtein]::EditDistance("kitten", "sitting")
+
+    Write-Host $result    
     Write-Host "Doing the thing!"
 }
 
