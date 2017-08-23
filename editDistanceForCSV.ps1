@@ -167,9 +167,18 @@ function selectBox() {
 }
 
 function handleCSV($selectedColumn) {
-    $result = [Levenshtein]::EditDistance("kitten", "sitting")
-    Write-Host $result
-    Write-Host $selectedColumn
+    $columnName = $columnHeaders[$selectedColumn]
+    $column = @()
+    $column += $sourceCSV | Select $columnName
+    $i = 0
+    Write-Host $column[$i]
+    Write-Host $i
+    foreach ($row in $column) {
+        foreach ($row in $column) {
+            Write-Host "Edit distance between " $column[$i] " and " $row " is " ([Levenshtein]::EditDistance($column[$i], $row))
+        }
+        $i++
+    }
 }
 
 
