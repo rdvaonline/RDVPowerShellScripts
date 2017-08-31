@@ -171,14 +171,24 @@ function handleCSV($selectedColumn) {
     $column = @()
     $column += $sourceCSV | Select $columnName
     $i = 0
-    Write-Host $column[$i]
-    Write-Host $i
+    $matchThreshold = 0.75
+    $output = @()
+
     foreach ($row in $column) {
         foreach ($row in $column) {
-            Write-Host "Edit distance between " $column[$i] " and " $row " is " ([Levenshtein]::EditDistance($column[$i], $row))
+            $searchString = $column[$i].($columnName)
+            $comparedString = $row.($columnName)
+            $editDistance = ([Levenshtein]::EditDistance($searchString, $comparedString))
+            $matchPercentage = $editDistance / $searchString.length
+           
+            if ($matchPercentage -lt (1 - $matchThreshold)) {
+                $output += @{Row='$i';SearchString='$searchString';ComparedString='$comparedString';EditDistance='$editDistance'}
+            }
         }
         $i++
     }
+
+    $output | ConvertTo-HTML | Set-Content C:\scripts\test.htm
 }
 
 
