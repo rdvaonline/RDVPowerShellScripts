@@ -194,14 +194,48 @@ function handleCSV($selectedColumn) {
     }
 
     $output = $output| Group-Object -Property SearchString
-    $body
 
+    $head = "
+    <Title>Dedupe Report</Title>
+    <style>
+        td, th {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th {
+            color:white;
+            background-color: #a33039;
+        }
+
+        table, tr, td, th {
+            padding: 2px; 
+            margin: 0px;
+        }
+
+        tr:nth-child(odd) {
+            background-color: lightgray;
+        }
+
+        table {
+            width: 95%;
+            margin-left: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+    <br />
+    <h1>Dedupe Report</h1>
+    "
+
+    $body
     foreach ($row in $output) {
         $body += "<h2>$($row.name)</h2>"
         $body += $row.Group | Select Row,ComparedString,EditDistance | ConvertTo-Html -Fragment -As Table
     }
 
-    ConvertTo-HTML -Body $body -Title "Dedupe Report" -PostContent "<h6>$(Get-Date)</h6>" | Out-File C:\scripts\test.htm
+
+
+    ConvertTo-HTML -Head $head -Body $body -PostContent "<h6>$(Get-Date)</h6>" | Out-File C:\scripts\test.htm
 }
 
 
