@@ -175,14 +175,17 @@ function handleCSV($selectedColumn) {
     $output = New-Object -TypeName System.Collections.ArrayList
 
     foreach ($row in $column) {
+        $j = 0
         foreach ($row in $column) {
             $output 
             $searchString = $column[$i].($columnName)
             $comparedString = $row.($columnName)
             $editDistance = ([Levenshtein]::EditDistance($searchString, $comparedString))
             $matchPercentage = $editDistance / $searchString.length
+            $j++
            
             if ($matchPercentage -lt (1 - $matchThreshold)) {
+                $properties = @{'Row'=$j;'SearchString'=$searchString;'ComparedString'=$comparedString;'EditDistance'=$editDistance}
                 $outputRow = New-Object -TypeName PSObject -Prop $properties
                 $output.Add($outputRow)
             }
@@ -190,6 +193,15 @@ function handleCSV($selectedColumn) {
         $i++
     }
 
+    $output = $output| Group-Object -Property SearchString
+    $body
+
+    foreach ($row in $output) {
+        $body += "<h2>$($row.name)</h2>"
+        $body += $row.Group | Select Row,ComparedString,EditDistance | ConvertTo-Html -Fragment -As Table
+    }
+
+    ConvertTo-HTML -Body $body -Title "Dedupe Report" -PostContent "<h6>$(Get-Date)</h6>" | Out-File C:\scripts\test.htm
 }
 
 
