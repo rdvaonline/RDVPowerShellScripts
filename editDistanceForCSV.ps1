@@ -172,23 +172,24 @@ function handleCSV($selectedColumn) {
     $column += $sourceCSV | Select $columnName
     $i = 0
     $matchThreshold = 0.75
-    $output = @()
+    $output = New-Object -TypeName System.Collections.ArrayList
 
     foreach ($row in $column) {
         foreach ($row in $column) {
+            $output 
             $searchString = $column[$i].($columnName)
             $comparedString = $row.($columnName)
             $editDistance = ([Levenshtein]::EditDistance($searchString, $comparedString))
             $matchPercentage = $editDistance / $searchString.length
            
             if ($matchPercentage -lt (1 - $matchThreshold)) {
-                $output += @{Row='$i';SearchString='$searchString';ComparedString='$comparedString';EditDistance='$editDistance'}
+                $outputRow = New-Object -TypeName PSObject -Prop $properties
+                $output.Add($outputRow)
             }
         }
         $i++
     }
 
-    $output | ConvertTo-HTML | Set-Content C:\scripts\test.htm
 }
 
 
