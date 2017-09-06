@@ -183,7 +183,7 @@ function handleCSV($selectedColumn) {
             $editDistance = ([Levenshtein]::EditDistance($searchString, $comparedString))
             $matchPercentage = $editDistance / $searchString.length
             $j++
-           
+            Write-Host $i $j $output.length
             if ($matchPercentage -lt (1 - $matchThreshold)) {
                 $properties = @{'Row'=$j;'SearchString'=$searchString;'ComparedString'=$comparedString;'EditDistance'=$editDistance}
                 $outputRow = New-Object -TypeName PSObject -Prop $properties
@@ -233,9 +233,10 @@ function handleCSV($selectedColumn) {
         $body += $row.Group | Select Row,ComparedString,EditDistance | ConvertTo-Html -Fragment -As Table
     }
 
+    $saveChooser = New-Object -TypeName System.Windows.Forms.SaveFileDialog
+    $saveChooser.ShowDialog()
 
-
-    ConvertTo-HTML -Head $head -Body $body -PostContent "<h6>$(Get-Date)</h6>" | Out-File C:\scripts\test.htm
+    ConvertTo-HTML -Head $head -Body $body -PostContent "<h6>$(Get-Date)</h6>" | Out-File $saveChooser.FileName
 }
 
 
