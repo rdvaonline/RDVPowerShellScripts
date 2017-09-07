@@ -126,7 +126,7 @@ function selectBox() {
 
     $selectBox.KeyPreview = $True
     $selectBox.Add_KeyDown({if ($_.KeyCode -eq "Enter") 
-        {handleCSV($objListBox.SelectedIndex);$selectBox.Close()}})
+        {handleCSV($objListBox.SelectedItems);$selectBox.Close()}})
     $selectBox.Add_KeyDown({if ($_.KeyCode -eq "Escape") 
         {$selectBox.Close()}})
 
@@ -134,7 +134,7 @@ function selectBox() {
     $OKButton.Location = New-Object System.Drawing.Size(75,120)
     $OKButton.Size = New-Object System.Drawing.Size(75,23)
     $OKButton.Text = "OK"
-    $OKButton.Add_Click({handleCSV($objListBox.SelectedIndex);$selectBox.Close()})
+    $OKButton.Add_Click({handleCSV($objListBox.SelectedItems);$selectBox.Close()})
     $selectBox.Controls.Add($OKButton)
 
     $CancelButton = New-Object System.Windows.Forms.Button
@@ -155,6 +155,7 @@ function selectBox() {
     $objListBox.Location = New-Object System.Drawing.Size(10,40) 
     $objListBox.Size = New-Object System.Drawing.Size(260,20) 
     $objListBox.Height = 80
+    $objListBox.SelectionMode = "MultiExtended"
 
     $columnHeaders | ForEach-Object {[void] $objListBox.Items.Add($_)}
 
@@ -166,6 +167,18 @@ function selectBox() {
     [void] $selectBox.ShowDialog()
 }
 
+function handleCSV($selectedColumns) {
+    Write-Host $selectedColumns
+    $columns = @()
+    $columns = $sourceCSV | Select -Property $selectedColumns
+
+    foreach ($row in $columns) {
+        Write-Host $row
+    }
+}
+
+
+<#
 function handleCSV($selectedColumn) {
     $columnName = $columnHeaders[$selectedColumn]
     $column = @()
@@ -237,7 +250,7 @@ function handleCSV($selectedColumn) {
     $saveChooser.ShowDialog()
 
     ConvertTo-HTML -Head $head -Body $body -PostContent "<h6>$(Get-Date)</h6>" | Out-File $saveChooser.FileName
-}
+}#>
 
 
 initializeForm
