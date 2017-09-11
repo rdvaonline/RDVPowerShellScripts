@@ -64,6 +64,41 @@ public class Levenshtein {
 $sourceCSV
 $columnHeaders
 
+$head = "
+    <Title>Dedupe Report</Title>
+    <style>
+        td, th {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th {
+            color:white;
+            background-color: #a33039;
+        }
+
+        table, tr, td, th {
+            padding: 2px; 
+            margin: 0px;
+        }
+
+        tr:nth-child(odd) {
+            background-color: lightgray;
+        }
+
+        table {
+            width: 95%;
+            margin-left: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+    <br />
+    <h1>Dedupe Report</h1>
+"
+
+$body
+$saveChooser
+
 Add-Type -TypeDefinition $source
 
 function initializeForm() {
@@ -126,7 +161,7 @@ function selectBox() {
 
     $selectBox.KeyPreview = $True
     $selectBox.Add_KeyDown({if ($_.KeyCode -eq "Enter") 
-        {handleCSV($objListBox.SelectedItems);$selectBox.Close()}})
+        {loadColumns($objListBox.SelectedItems);$selectBox.Close()}})
     $selectBox.Add_KeyDown({if ($_.KeyCode -eq "Escape") 
         {$selectBox.Close()}})
 
@@ -134,7 +169,7 @@ function selectBox() {
     $OKButton.Location = New-Object System.Drawing.Size(75,120)
     $OKButton.Size = New-Object System.Drawing.Size(75,23)
     $OKButton.Text = "OK"
-    $OKButton.Add_Click({handleCSV($objListBox.SelectedItems);$selectBox.Close()})
+    $OKButton.Add_Click({loadColumns($objListBox.SelectedItems);$selectBox.Close()})
     $selectBox.Controls.Add($OKButton)
 
     $CancelButton = New-Object System.Windows.Forms.Button
@@ -167,90 +202,54 @@ function selectBox() {
     [void] $selectBox.ShowDialog()
 }
 
-function handleCSV($selectedColumns) {
-    Write-Host $selectedColumns
+function loadColumns($selectedColumns) {
     $columns = @()
     $columns = $sourceCSV | Select -Property $selectedColumns
 
-    foreach ($row in $columns) {
-        Write-Host $row
-    }
+    $saveChooser = New-Object -TypeName System.Windows.Forms.SaveFileDialog
+    $saveChooser.ShowDialog()
+
+    findFuzzydifferencees($columns)
 }
 
-
-<#
-function handleCSV($selectedColumn) {
-    $columnName = $columnHeaders[$selectedColumn]
-    $column = @()
-    $column += $sourceCSV | Select $columnName
+function findFuzzydifferencees($columns) {
     $i = 0
-    $matchThreshold = 0.75
-    $output = New-Object -TypeName System.Collections.ArrayList
+    $threshold = 0.75
 
-    foreach ($row in $column) {
+    foreach ($row in $columns) {
+        $output = New-Object -TypeName System.Collections.ArrayList
         $j = 0
-        foreach ($row in $column) {
-            $output 
-            $searchString = $column[$i].($columnName)
-            $comparedString = $row.($columnName)
-            $editDistance = ([Levenshtein]::EditDistance($searchString, $comparedString))
-            $matchPercentage = $editDistance / $searchString.length
+        foreach($row in $columns) {
+            $searchString = $columns[$i] | ft -HideTableHeaders | Out-String
+            $comparedString = $row | ft -HideTableHeaders | Out-String
+            $lowerBound = $searchString.Length * $threshold
+            $upperBound = $searchString.Length / $threshold
+
+            if (($comparedString.Length -lt $lowerBound) -Or ($comparedString.Length -gt $upperBound)) {
+                $differencePercentage = 100
+            } else {
+                $editDistance = ([Levenshtein]::EditDistance($searchString, $comparedString))
+                $differencePercentage = $editDistance / $searchString.length
+            }
+
             $j++
-            Write-Host $i $j $output.length
-            if ($matchPercentage -lt (1 - $matchThreshold)) {
+            Write-Host $i $j
+            if ($differencePercentage -lt (1 - $threshold)) {
                 $properties = @{'Row'=$j;'SearchString'=$searchString;'ComparedString'=$comparedString;'EditDistance'=$editDistance}
                 $outputRow = New-Object -TypeName PSObject -Prop $properties
                 $output.Add($outputRow)
             }
         }
         $i++
+        $output = $output| Group-Object -Property SearchString
+
+        foreach ($row in $output) {
+            $body += "<h2>$($row.name)</h2>"
+            $body += $row.Group | Select Row,ComparedString,EditDistance | ConvertTo-Html -Fragment -As Table
+        }
     }
-
-    $output = $output| Group-Object -Property SearchString
-
-    $head = "
-    <Title>Dedupe Report</Title>
-    <style>
-        td, th {
-            border: 1px solid black;
-            border-collapse: collapse;
-        }
-
-        th {
-            color:white;
-            background-color: #a33039;
-        }
-
-        table, tr, td, th {
-            padding: 2px; 
-            margin: 0px;
-        }
-
-        tr:nth-child(odd) {
-            background-color: lightgray;
-        }
-
-        table {
-            width: 95%;
-            margin-left: 5px;
-            margin-bottom: 20px;
-        }
-    </style>
-    <br />
-    <h1>Dedupe Report</h1>
-    "
-
-    $body
-    foreach ($row in $output) {
-        $body += "<h2>$($row.name)</h2>"
-        $body += $row.Group | Select Row,ComparedString,EditDistance | ConvertTo-Html -Fragment -As Table
-    }
-
-    $saveChooser = New-Object -TypeName System.Windows.Forms.SaveFileDialog
-    $saveChooser.ShowDialog()
 
     ConvertTo-HTML -Head $head -Body $body -PostContent "<h6>$(Get-Date)</h6>" | Out-File $saveChooser.FileName
-}#>
-
+}
 
 initializeForm
