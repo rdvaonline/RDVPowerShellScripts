@@ -63,7 +63,7 @@ public class Levenshtein {
 "@
 $sourceCSV
 $columnHeaders
-
+$selectedColumns
 $head = "
     <Title>Dedupe Report</Title>
     <style>
@@ -93,11 +93,11 @@ $head = "
         }
     </style>
     <br />
-    <h1>Dedupe Report</h1>
-"
+    <h1>Dedupe Report for Selected Columns</h1>
 
+"
 $body
-$saveChooser
+$savePicker
 
 Add-Type -TypeDefinition $source
 
@@ -205,9 +205,10 @@ function selectBox() {
 function loadColumns($selectedColumns) {
     $columns = @()
     $columns = $sourceCSV | Select -Property $selectedColumns
+    $selectedColumns = $selectedColumns
 
-    $saveChooser = New-Object -TypeName System.Windows.Forms.SaveFileDialog
-    $saveChooser.ShowDialog()
+    $savePicker = New-Object -TypeName System.Windows.Forms.SaveFileDialog
+    $savePicker.ShowDialog()
 
     findFuzzydifferencees($columns)
 }
@@ -245,11 +246,14 @@ function findFuzzydifferencees($columns) {
 
         foreach ($row in $output) {
             $body += "<h2>$($row.name)</h2>"
-            $body += $row.Group | Select Row,ComparedString,EditDistance | ConvertTo-Html -Fragment -As Table
+            $body += "<h4>ROW $($i) $($selectedColumns)</h4>"
+            $body += $row.Group | Select Row,ComparedString,EditDistance | Sort-Object EditDistance | ConvertTo-Html -Fragment -As Table
         }
     }
 
-    ConvertTo-HTML -Head $head -Body $body -PostContent "<h6>$(Get-Date)</h6>" | Out-File $saveChooser.FileName
+
+
+    ConvertTo-HTML -Head $head -Body $body -PostContent "<h6>$(Get-Date)</h6>" | Out-File $savePicker.FileName
 }
 
 initializeForm
